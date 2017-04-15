@@ -41,6 +41,11 @@ the [DeepMind Lab paper](https://arxiv.org/abs/1612.03801).
 
 You can reach us at [lab@deepmind.com](mailto:lab@deepmind.com).
 
+## About this fork
+
+This is an **independently maintained** fork of the original DeepMind Lab used for some small (and rather pointless) experiments.
+Some of the branches contains fixes and additional functionalities, you can always check the updated documentation files.
+
 ## Getting started on Linux
 
 * Get [Bazel from bazel.io](http://bazel.io/docs/install.html).

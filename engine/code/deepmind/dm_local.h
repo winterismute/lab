@@ -97,4 +97,8 @@ int dmlab_make_screen_messages(int screen_width, int screen_height,
 void dmlab_get_screen_message(int message_id, char* buffer, int* x, int* y,
                               int* align_l0_r1_c2);
 
+float dmlab_get_bot_scripted_input(int bot_id, float * outVelocity);
+
+void dmlab_on_player_bot_collision(int player_id, int bot_id);
+
 #endif  // DML_ENGINE_CODE_DEEPMIND_DM_LOCAL_H_

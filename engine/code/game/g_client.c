@@ -286,6 +286,7 @@ gentity_t *SelectRandomSpawnPoint(vec3_t origin, vec3_t angles, qboolean isbot) 
 		VectorCopy(best_spot->s.origin, origin);
 		origin[2] += 9.0f;
 		VectorCopy(best_spot->s.angles, angles);
+#ifndef SPAWN_WITHOUT_RANDOM_ANGLE
 		if ( best_spot->randomAngleRange == 360.0f ) {
 			angles[1] = random() * 360.0f;
 		} else {
@@ -293,6 +294,7 @@ gentity_t *SelectRandomSpawnPoint(vec3_t origin, vec3_t angles, qboolean isbot) 
 			float segment = ( random() - 0.5f ) * best_spot->randomAngleRange;
 			angles[1] += segment;
 		}
+#endif
 	}
 	return best_spot;
 }
@@ -1117,6 +1119,7 @@ void ClientSpawn(gentity_t *ent) {
 	client = ent->client;
 
 	VectorClear(spawn_origin);
+	VectorClear(spawn_angles);
 
 	// find a spawn point
 	// do it before setting health back up, so farthest

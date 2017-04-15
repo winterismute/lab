@@ -162,7 +162,7 @@
 }
 // entity 2
 {
-"classname" "info_player_deathmatch"
+"classname" "info_player_start"
 "origin" "-552 8 32"
 }
 // entity 3

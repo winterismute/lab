@@ -175,6 +175,25 @@ allows overriding the settings for each map entity.
 
 The default implementation returns `spawn_vars` unchanged.
 
+### `getButtonsBlacklist`() &rarr; int
+
+Called once at the start of each episode, can be used to supply an int interpreted
+as a bitmap of buttons that will not be allowed to be used in the environment.
+The bitmap uses the convention of [deepmind/engine/code/qcommon/q_shared.h](deepmind/engine/code/qcommon/q_shared.h).
+
+### `onPlayerBotCollision`(*player_id*, *bot_id*) &rarr; nil
+
+Called everytime a bot with id bot_id collides with a player with id bot_id.
+Can be used to bind specific logic to these kind of collisions. 
+
+### `getBotScriptedInput`(*bot_id*) &rarr; table
+
+Called at every update of any bot, can be used to pass down a speed and a velocity vector
+that will be used as input for that bot. Returning a `speed` of 0 leads to the bot being
+updated following the standard AI. The returned table must have a `speed` property interpred
+as a float and optionally three properties `velocityX`, `velocityY` and `velocityZ` used
+as input velocity vector. View rotations are currently not supported.
+
 ## Lua common helper objects
 
 A number of helper functions can be found in `game_scripts/common`. They

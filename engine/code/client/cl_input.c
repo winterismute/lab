@@ -593,6 +593,8 @@ void CL_FinishMove( vec3_t old_angles, usercmd_t *cmd ) {
 	for (i=0 ; i<3 ; i++) {
 		cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
 	}
+
+	cmd->buttons &= ~ctx->hooks.get_external_buttons_blacklist(ctx->userdata);	
 }
 
 

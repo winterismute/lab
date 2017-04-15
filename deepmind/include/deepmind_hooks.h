@@ -148,6 +148,15 @@ struct DeepmindHooks_s {
   // Calls script when bots should be loaded.
   void (*add_bots)(void* userdata);
 
+  // TODO
+  float (*get_bot_scripted_input)(void* userdata, int bot_id, float * outVelocity);
+
+  void (*on_player_bot_collision)(void* userdata, int player_id, int bot_id);
+
+  int (*get_buttons_blacklist)(void* userdata);
+
+  int (*get_external_buttons_blacklist)(void* userdata);
+
   // Enables game to modify a texture after load.
   void (*modify_rgba_texture)(void* userdata, const char* name,
                               unsigned char* data, int width, int height);

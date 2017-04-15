@@ -1,0 +1,78 @@
+http://fd.fabiensanglard.net/quake3/The-Quake-III-Arena-Bot.pdf
+
+start again from BotAIStartFrame
+
+
+CG_PredictPlayerState: important method?
+trap_EA_MoveDown: important methods that move AI
+G_AddBot: allocates the bot
+trap_SetUserinfo: sets the info
+BotAIStartFrame: 
+BotUpdateInput: important to update ai
+BotInputToUserCommand: it is what translates out of the bot to the user cmds
+G_AddRandomBot: interesting to see the relationship between clientnums and bots
+CL_FinishMove: gets info from context
+CL_SendCmd: sends command to server
+Com_Frame: where a lot of things start
+IN_Frame: mostly called before Com_Frame, handles input
+CL_Connect_f: in cl_main.c, connects to server?
+NET_OutOfBandPrint: response to connecting client
+NA_BOT: bot type for client
+SV_CheckPaused: might be useful
+GAME_CLIENT_THINK: 
+dmlab_external_reward: to see how deepmind gets stuff called
+Pmove: in bg_pmove.c is used to actually move a client
+trap_BotMoveInDirection:
+BotRandomMove:
+G_StartKamikaze: useful for damage
+ClientSpawn: see how bots and players are spawned
+CG_TouchTriggerPrediction: ?
+SV_ClipMoveToEntities: maybe where collisions happen?
+PM_SlideMove: moves entity in a direction, as much as it can?
+PM_AddTouchEnt:
+ClientImpacts: calls the touch callbacks?
+get_engine_score: score track
+FireWeapon: to shoot
+dmlab_start: where everything starts
+
+---
+
+	// check for fire
+	if ( ! (pm->cmd.buttons & BUTTON_ATTACK) ) {
+		pm->ps->weaponTime = 0;
+		pm->ps->weaponstate = WEAPON_READY;
+		return;
+	}
+
+------
+
+void SP_info_player_deathmatch( gentity_t *ent ) {
+	int		i;
+	G_SpawnFloat( "randomAngleRange", "360.0", &ent->randomAngleRange );
+	G_SpawnInt( "nobots", "0", &i);
+	if ( i ) {
+		ent->flags |= FL_NO_BOTS;
+	}
+	G_SpawnInt( "nohumans", "0", &i );
+	if ( i ) {
+		ent->flags |= FL_NO_HUMANS;
+	}
+}
+
+
+	// find the real player
+	player = NULL;
+	for (i = 0; i < level.maxclients; i++ ) {
+		player = &g_entities[i];
+		if ( !player->inuse ) {
+			continue;
+		}
+		if ( !( player->r.svFlags & SVF_BOT ) ) {
+			break;
+		}
+	}
+	// this should never happen!
+	if ( !player || i == level.maxclients ) {
+		return;
+	}
+	playerClientNum = i;

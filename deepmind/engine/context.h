@@ -207,6 +207,29 @@ class Context {
   // server, which only deals in integral reward increments.
   int ExternalReward(int player_id);
 
+  // Calls method getBotScriptedInput from script_table_ref_, which gets a speed 
+  // (returned) and a velocity vector (outVelocity filled) for bot bot_id.
+  // Effectively, this allows for bots to be controlled externally.
+  // Currently does not support rotations.
+  float GetBotScriptedInput(int bot_id, float * outVelocity);
+
+  // Calls method onPlayerBotCollision from script_table_ref_ every time 
+  // player player_id collides with bot bot_id. This Allows
+  // to script special events on certain collisions.
+  void OnPlayerBotCollision(int player_id, int bot_id);
+
+  // Calls getButtonsBlacklist from script_table_ref_, which retrieves an int 
+  // interpreted as a bitmap of blacklisted buttons: pressing those buttons
+  // becomes forbidden during the episodes. The bitmap retrieved from LUA
+  // is assigned to buttons_blacklist_ and returned. buttons_blacklist_ is set
+  // to 0 if nothing is returned.
+  // This method is always called by "dmlab_start".
+  int GetButtonsBlacklist();
+
+  // Returns the bitmap of blacklisted buttons set by GetButtonsBlacklist
+  // The bitmap can be interpreted as "usercmd_t->button" as shown in g_shared.h
+  int GetExternalButtonsBlacklist() {return buttons_blacklist_; }
+
   // Adds the given reward for the specified player. The reward is accumulated
   // temporarily until it is harvested by ExternalReward.
   void AddScore(int player_id, double reward);
@@ -378,6 +401,9 @@ class Context {
 
   // A list of screen messages to display this frame.
   std::vector<ScreenMessage> screen_messages_;
+
+  // A list of buttons that are blacklisted. Uses same bitmap as rest of game
+  int buttons_blacklist_;
 };
 
 }  // namespace lab

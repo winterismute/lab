@@ -813,6 +813,93 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 	trap_EA_View(bs->client, bs->viewangles);
 }
 
+void BotTranslateScriptCmdToUserCmd(float aSpeed, vec3_t aVelocity, usercmd_t * apUcmd, bot_state_t * aCurrentBS, int delta_angles[3], int time)
+{
+	vec3_t angles, forward, right;
+	//vec3_t inputDir;
+	short temp;
+	int j;
+	float f, r, u, m;
+
+	//NOTE: movement is relative to the REAL view angles
+	//get the horizontal forward and right vector
+	//get the pitch in the range [-180, 180]
+
+	// View rotations currently not supported for scripted inputs
+	/*
+	//NOTE: the apUcmd->angles are the angles WITHOUT the delta angles
+	apUcmd->angles[PITCH] = ANGLE2SHORT(aCurrentBS->viewangles[PITCH]);
+	apUcmd->angles[YAW] = ANGLE2SHORT(aCurrentBS->viewangles[YAW]);
+	apUcmd->angles[ROLL] = ANGLE2SHORT(aCurrentBS->viewangles[ROLL]);
+	//subtract the delta angles
+	for (j = 0; j < 3; j++) {
+		temp = apUcmd->angles[j] - delta_angles[j];
+		//NOTE: disabled because temp should be mod first
+		//if ( j == PITCH ) {
+		//	// don't let the player look up or down more than 90 degrees
+		//	if ( temp > 16000 ) temp = 16000;
+		//	else if ( temp < -16000 ) temp = -16000;
+		//}
+		apUcmd->angles[j] = temp;
+	}
+	if (inputDir[2]) // Y axis
+	{
+		angles[PITCH] = aCurrentBS->viewangles[PITCH];
+	}
+	else
+	{
+		angles[PITCH] = 0;
+	}
+	angles[YAW] = aCurrentBS->viewangles[YAW];
+	angles[ROLL] = 0;
+	*/
+
+	angles[PITCH] = 0;
+	angles[YAW] = 0;
+	angles[ROLL] = 0;
+	
+	AngleVectors(angles, forward, right, NULL);
+
+	//bot input speed is in the range [0, 400]
+	aSpeed = aSpeed * 127 / 400;
+
+	//set the view independent movement
+	f = DotProduct(forward, aVelocity);
+	r = DotProduct(right, aVelocity);
+	u = fabs(forward[2]) * aVelocity[2];
+	m = fabs(f);
+
+	if (fabs(r) > m) {
+		m = fabs(r);
+	}
+
+	if (fabs(u) > m) {
+		m = fabs(u);
+	}
+
+	if (m > 0) {
+		f *= aSpeed / m;
+		r *= aSpeed / m;
+		u *= aSpeed / m;
+	}
+
+	apUcmd->forwardmove = f;
+	apUcmd->rightmove = r;
+	apUcmd->upmove = u;
+
+	// Additional input flags currently not supported for scripted input
+	/*
+	if (bi->actionflags & ACTION_MOVEFORWARD) ucmd->forwardmove = 127;
+	if (bi->actionflags & ACTION_MOVEBACK) ucmd->forwardmove = -127;
+	if (bi->actionflags & ACTION_MOVELEFT) ucmd->rightmove = -127;
+	if (bi->actionflags & ACTION_MOVERIGHT) ucmd->rightmove = 127;
+	//jump/moveup
+	if (bi->actionflags & ACTION_JUMP) ucmd->upmove = 127;
+	//crouch/movedown
+	if (bi->actionflags & ACTION_CROUCH) ucmd->upmove = -127;
+	*/
+}
+
 /*
 ==============
 BotInputToUserCommand
@@ -936,6 +1023,28 @@ void BotUpdateInput(bot_state_t *bs, int time, int elapsed_time) {
 	for (j = 0; j < 3; j++) {
 		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
+}
+
+void BotUpdateScriptedInput(bot_state_t *bs, float scriptedSpeed, vec3_t scriptedVelocity, int time, int elapsed_time) {
+	bot_input_t bi;
+	int j;
+
+	//add the delta angles to the bot's current view angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
+	//change the bot view angles
+	BotChangeViewAngles(bs, (float) elapsed_time / 1000);
+	
+	BotTranslateScriptCmdToUserCmd(scriptedSpeed, scriptedVelocity, &bs->lastucmd, bs, bs->cur_ps.delta_angles, time);
+	
+	/*
+	View rotation not supported for scripted inputs
+	//subtract the delta angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
+	*/
 }
 
 /*
@@ -1408,6 +1517,8 @@ int BotAIStartFrame(int time) {
 	static int local_time;
 	static int botlib_residual;
 	static int lastbotthink_time;
+	float returnedSpeed;
+	vec3_t outVelocity;
 
 	G_CheckBotSpawn();
 
@@ -1581,7 +1692,16 @@ int BotAIStartFrame(int time) {
 			continue;
 		}
 
-		BotUpdateInput(botstates[i], time, elapsed_time);
+		returnedSpeed = dmlab_get_bot_scripted_input(i, outVelocity);
+		if (returnedSpeed > 0)
+		{
+			// The bot is controlled by an external script in this case
+			BotUpdateScriptedInput(botstates[i], returnedSpeed, outVelocity, time, elapsed_time);
+		}
+		else
+		{
+			BotUpdateInput(botstates[i], time, elapsed_time);		
+		}
 		trap_BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
 	}
 

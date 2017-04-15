@@ -211,6 +211,16 @@ void ClientImpacts( gentity_t *ent, pmove_t *pm ) {
 			continue;	// duplicated
 		}
 		other = &g_entities[ pm->touchents[i] ];
+		
+		if ( ((ent->r.svFlags & SVF_BOT) == 0) &&  other->r.svFlags & SVF_BOT)
+		{
+			// player colliding with bot
+			dmlab_on_player_bot_collision(ent - g_entities, other - g_entities);
+		}
+		else if ( ((other->r.svFlags & SVF_BOT) == 0) && ent->r.svFlags & SVF_BOT)
+		{
+			dmlab_on_player_bot_collision(other - g_entities, ent - g_entities);
+		}
 
 		if ( ( ent->r.svFlags & SVF_BOT ) && ( ent->touch ) ) {
 			ent->touch( ent, other, &trace );

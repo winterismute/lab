@@ -306,6 +306,8 @@ static int dmlab_start(void* context, int episode_id, int seed) {
     }
     gc->first_start = true;
   }
+  
+  ctx->hooks.get_buttons_blacklist(ctx->userdata);
 
   load_map(gc);
   return 0;

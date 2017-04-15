@@ -1,6 +1,7 @@
 local random = require 'common.random'
 local custom_observations = require 'decorators.custom_observations'
 local timeout = require 'decorators.timeout'
+local game = require 'dmlab.system.game'
 
 local BOT_NAMES_COLOR = {
     'CygniColor',
@@ -79,6 +80,7 @@ function factory.createLevelApi(kwargs)
       -- Pick a random angle.
       api.bot_hue_degrees_ = random.uniformInt(0, 359)
     end
+    --game:finishMap()
   end
 
   if kwargs.color then

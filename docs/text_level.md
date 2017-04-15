@@ -112,12 +112,15 @@ generator for reproducibility.
 
 The following default cell values are recognized:
 
-   * `P`: the default action creates a spawn point at this cell.
+   * `P`: the default action creates a spawn point for a player at this cell.
    * `H`: the default action creates a door that is traversed in up-down
      direction (that is, a door at (`i`, `j`) connects (`i` &pm; 1, `j`).
    * `I`: the default action creates a door that is traversed in left-right
      direction (that is, a door at (`i`, `j`) connects (`i`, `j` &pm; 1).
-
+   * `L`: the default action is to create a spawn point at this cell for a bot that will initially face left.
+   * `R`: the default action is to create a spawn point at this cell for a bot that will initially face right.
+   * `U`: the default action is to create a spawn point at this cell for a bot that will initially face up.
+   * `D`: the default action is to create a spawn point at this cell for a bot that will initially face down.
 
 ## Example
 

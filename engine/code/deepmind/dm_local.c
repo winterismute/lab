@@ -103,3 +103,13 @@ int dmlab_player_score(void) {
   return trap_DeepmindCallback(DEEPMIND_PLAYER_SCORE, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                0, 0, 0);
 }
+
+float dmlab_get_bot_scripted_input(int bot_id, float * outVelocity) {
+    return trap_DeepmindCallback(DEEPMIND_GET_BOT_SCRIPTED_INPUT, (intptr_t)bot_id, (intptr_t)outVelocity,
+                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+void dmlab_on_player_bot_collision(int player_id, int bot_id) {
+  trap_DeepmindCallback(DEEPMIND_ON_PLAYER_BOT_COLLISION, (intptr_t)player_id, (intptr_t)bot_id,
+                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}

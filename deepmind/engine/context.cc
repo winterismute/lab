@@ -144,6 +144,22 @@ static int external_reward(void* userdata, int player_id) {
   return static_cast<Context*>(userdata)->ExternalReward(player_id);
 }
 
+static float get_bot_scripted_input(void* userdata, int bot_id, float * outVelocity) {
+  return static_cast<Context*>(userdata)->GetBotScriptedInput(bot_id, outVelocity);
+}
+
+static void on_player_bot_collision(void* userdata, int player_id, int bot_id) {
+  return static_cast<Context*>(userdata)->OnPlayerBotCollision(player_id, bot_id);
+}
+
+static int get_external_buttons_blacklist(void* userdata) {
+  return static_cast<Context*>(userdata)->GetExternalButtonsBlacklist();
+}
+
+static int get_buttons_blacklist(void* userdata) {
+  return static_cast<Context*>(userdata)->GetButtonsBlacklist();
+}
+
 static void add_score(void* userdata, int player_id, double reward) {
   static_cast<Context*>(userdata)->AddScore(player_id, reward);
 }
@@ -367,6 +383,10 @@ Context::Context(lua::Vm lua_vm, const char* executable_runfiles,
   hooks->predicted_player_state = predicted_player_state;
   hooks->make_screen_messages = make_screen_messages;
   hooks->get_screen_message = get_screen_message;
+  hooks->get_bot_scripted_input = get_bot_scripted_input;
+  hooks->on_player_bot_collision = on_player_bot_collision;
+  hooks->get_buttons_blacklist = get_buttons_blacklist;
+  hooks->get_external_buttons_blacklist = get_external_buttons_blacklist;
 }
 
 void Context::AddSetting(const char* key, const char* value) {
@@ -746,12 +766,109 @@ int Context::ExternalReward(int player_id) {
   CHECK_GE(player_id, 0) << "Invalid player Id!";
   double reward = 0;
   if (static_cast<std::size_t>(player_id) < player_rewards_.size()) {
-    if (player_rewards_[player_id] >= 1.0) {
+    if (player_rewards_[player_id] != 0.0) {
       player_rewards_[player_id] =
           std::modf(player_rewards_[player_id], &reward);
     }
   }
   return reward;
+}
+
+/*
+bool Context::CanPickup(int entity_id) {
+  lua_State* L = lua_vm_.get();
+  script_table_ref_.PushMemberFunction("canPickup");
+
+  // Check function exists.
+  if (lua_isnil(L, -2)) {
+    lua_pop(L, 2);
+    return true;
+  }
+
+  lua::Push(L, entity_id);
+
+  auto result = lua::Call(L, 2);
+  CHECK(result.ok()) << result.error();
+
+  // If nothing returned or the return is nil, the default.
+  if (result.n_results() == 0 || lua_isnil(L, -1)) {
+    lua_pop(L, result.n_results());
+    return true;
+  }
+
+  bool can_pickup = true;
+  CHECK(lua::Read(L, -1, &can_pickup))
+      << "Failed to read canPickup return value";
+
+  lua_pop(L, result.n_results());
+  return can_pickup;
+}
+*/
+
+float Context::GetBotScriptedInput(int bot_id, float * outVelocity) {
+  lua_State* L = lua_vm_.get();
+  script_table_ref_.PushMemberFunction("getBotScriptedInput");
+  
+  if (lua_isnil(L, -2)) {
+    lua_pop(L, 2);
+    return 0;
+  }
+
+  lua::Push(L, bot_id);
+  auto result = lua::Call(L, 2);
+  CHECK(result.ok()) << "[getBotScriptedInput] - " << result.error();
+  if (result.n_results() == 0 || lua_isnil(L, -1)) {
+    lua_pop(L, result.n_results());
+    return 0;
+  }
+  lua::TableRef table;
+  CHECK(lua::Read(L, -1, &table)) << "[getBotScriptedInput] - Failed to read result table!";
+
+  float returnedSpeed = 0.0;
+  CHECK(table.LookUp("speed", &returnedSpeed)) << "[getBotScriptedInput] - Must return speed as float!";
+  if (returnedSpeed > 0)
+  {
+    CHECK(table.LookUp("velocityX", &outVelocity[0])) << "[getBotScriptedInput] - Must return velocityX as float!";
+    CHECK(table.LookUp("velocityY", &outVelocity[1])) << "[getBotScriptedInput] - Must return velocityY as float!";
+    CHECK(table.LookUp("velocityZ", &outVelocity[2])) << "[getBotScriptedInput] - Must return velocityZ as float!";
+  }
+
+  lua_pop(L, result.n_results());
+  return returnedSpeed;
+}
+
+void Context::OnPlayerBotCollision(int player_id, int bot_id) {
+  lua_State* L = lua_vm_.get();
+  script_table_ref_.PushMemberFunction("onPlayerBotCollision");
+  // Check function exists.
+  if (lua_isnil(L, -2)) {
+    lua_pop(L, 2);
+    return;
+  }
+
+  lua::Push(L, player_id);
+  lua::Push(L, bot_id);
+  auto result = lua::Call(L, 3);
+  CHECK(result.ok()) << "[onPlayerBotCollision] - " << result.error();
+  lua_pop(L, result.n_results());
+  return;
+}
+
+int Context::GetButtonsBlacklist() {
+  buttons_blacklist_ = 0;
+  lua_State* L = lua_vm_.get();
+  script_table_ref_.PushMemberFunction("getButtonsBlacklist");
+  // Check function exists.
+  if (lua_isnil(L, -2)) {
+    lua_pop(L, 2);
+    return 0;
+  }
+
+  auto result = lua::Call(L, 1);
+  CHECK(result.ok()) << "[getButtonsBlacklist] - " << result.error();
+  CHECK(lua::Read(L, -1, &buttons_blacklist_)) << "[getButtonsBlacklist] - Failed to read result int!";
+  lua_pop(L, result.n_results());
+  return buttons_blacklist_;
 }
 
 // Adds reward to a player ready for transfer to the server.

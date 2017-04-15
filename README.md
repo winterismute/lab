@@ -44,7 +44,7 @@ You can reach us at [lab@deepmind.com](mailto:lab@deepmind.com).
 ## About this fork
 
 This is an **independently maintained** fork of the original DeepMind Lab used for some small (and rather pointless) experiments.
-Some of the branches contains fixes and additional functionalities, you can always check the updated documentation files.
+Some of the branches contain fixes and additional functionalities: you can always check the updated documentation files to learn about them.
 
 ## Getting started on Linux
 
